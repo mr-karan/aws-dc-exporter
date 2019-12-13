@@ -1,6 +1,6 @@
 FROM alpine:latest AS deploy
 RUN apk --no-cache add ca-certificates
-COPY ebs-snapshot-exporter /
-COPY config.sample  /etc/ebs-snapshot-exporter/config.toml
-VOLUME ["/etc/ebs-snapshot-exporter"]
-CMD ["./ebs-snapshot-exporter", "--config", "/etc/ebs-snapshot-exporter/config.toml"]  
+COPY aws-dc-exporter /
+COPY config.sample.toml  /etc/aws-dc-exporter/config.toml
+VOLUME ["/etc/aws-dc-exporter"]
+CMD ["./aws-dc-exporter", "--config", "/etc/aws-dc-exporter/config.toml"]  

@@ -1,13 +1,12 @@
-# ebs-snapshot-exporter
+# aws-dc-exporter
 
 ## Overview
 
-Export AWS EBS Snapshot metrics in Prometheus format.
+Export [AWS Direct Connect](https://aws.amazon.com/directconnect/) metrics in Prometheus format.
 
 ## Features
 
-- Ability to add ad-hoc labels in the form of AWS Tags to the exported metrics.
-- Filter EBS Snapshots using standard AWS Filters.
+- Get metrics of Connections, Virtual Interfaces in form of Prometheus Metrics. (_More metrics coming soon!_)
 - Ability to register multiple exporter in form of Jobs to query multiple regions and AWS Accounts.
 - Support for `Assume Role` while authenticating to AWS using Role ARN.
 
@@ -27,8 +26,8 @@ Export AWS EBS Snapshot metrics in Prometheus format.
 
 ### How it Works
 
-`ebs-snapshot-exporter` uses [AWS SDK](https://github.com/aws/aws-sdk-go) to authenticate with AWS API
-and fetch Snapshots metdata. You can specify multiple `jobs` to fetch EBS Snapshots data and this exporter will collect all metrics and export in the form of Prometheus metrics.
+`aws-dc-exporter` uses [AWS SDK](https://github.com/aws/aws-sdk-go) to authenticate with AWS API
+and fetch Snapshots metdata. You can specify multiple `jobs` to fetch EBS Snapshots data and this exporter will collect all metrics and export in the form of Prometheus metrics using a lightweight [metrics](https://github.com/VictoriaMetrics/metrics) collection library.
 
 You will need an _IAM User/Role_ with the following policy attached to the server from where you are running this program:
 
@@ -40,9 +39,8 @@ You will need an _IAM User/Role_ with the following policy attached to the serve
             "Sid": "VisualEditor0",
             "Effect": "Allow",
             "Action": [
-                "ec2:DescribeSnapshotAttribute",
-                "ec2:DescribeSnapshots",
-                "ec2:DescribeImportSnapshotTasks"
+                "directconnect:DescribeConnections",
+                "directconnect:DescribeVirtualInterfaces"
             ],
             "Resource": "*"
         }
@@ -52,36 +50,36 @@ You will need an _IAM User/Role_ with the following policy attached to the serve
 
 ### Installation
 
-There are multiple ways of installing `ebs-snapshot-exporter`.
+There are multiple ways of installing `aws-dc-exporter`.
 
 ### Running as docker container
 
-[mrkaran/ebs-snapshot-exporter](https://hub.docker.com/r/mrkaran/ebs-snapshot-exporter)
+[mrkaran/aws-dc-exporter](https://hub.docker.com/r/mrkaran/aws-dc-exporter)
 
-`docker run -p 9608:9608 -v /etc/ebs-snapshot-exporter/config.toml:/etc/ebs-snapshot-exporter/config.toml mrkaran/ebs-snapshot-exporter:latest`
+`docker run -p 9980:9980 -v /etc/aws-dc-exporter/config.toml:/etc/aws-dc-exporter/config.toml mrkaran/aws-dc-exporter:latest`
 
 ### Precompiled binaries
 
-Precompiled binaries for released versions are available in the [_Releases_ section](https://github.com/mr-karan/ebs-snapshot-exporter/releases/).
+Precompiled binaries for released versions are available in the [_Releases_ section](https://github.com/mr-karan/aws-dc-exporter/releases/).
 
 ### Compiling the binary
 
 You can checkout the source code and build manually:
 
 ```bash
-git clone https://github.com/mr-karan/ebs-snapshot-exporter.git
-cd ebs-snapshot-exporter
+git clone https://github.com/mr-karan/aws-dc-exporter.git
+cd aws-dc-exporter
 make build
 cp config.sample config.toml
-./ebs-snapshot-exporter
+./aws-dc-exporter
 ```
 
 ### Quickstart
 
 ```sh
-mkdir ebs-snapshot-exporter && cd ebs-snapshot-exporter/ # copy the binary and config.sample in this folder
+mkdir aws-dc-exporter && cd aws-dc-exporter/ # copy the binary and config.sample in this folder
 cp config.toml.sample config.toml # change the settings like server address, job metadata, aws credentials etc.
-./ebs-snapshot-exporter # this command starts a web server and is ready to collect metrics from EC2.
+./aws-dc-exporter # this command starts a web server and is ready to collect metrics from EC2.
 ```
 
 ### Testing a sample scrape request
@@ -89,18 +87,7 @@ cp config.toml.sample config.toml # change the settings like server address, job
 You can send a `GET` request to `/metrics` and see the following metrics in Prometheus format:
 
 ```bash
-# HELP ebs_snapshots_start_time Start Timestamp of EBS Snapshot
-# TYPE ebs_snapshots_start_time gauge
-ebs_snapshots_start_time{job="public",progress="100%",region="ap-south-1",snapshot_id="redacted",state="completed",vol_id="redacted",service="redacted"} 1.562355284e+09
-# HELP ebs_snapshots_up Could the AWS EC2 API be reached.
-# TYPE ebs_snapshots_up gauge
-ebs_snapshots_up 1
-# HELP ebs_snapshots_version Version of ebs-snapshot-exporter
-# TYPE ebs_snapshots_version gauge
-ebs_snapshots_version{build="5161e83 (2019-07-09 15:35:59 +0530)"} 1
-# HELP ebs_snapshots_volume_size Size of volume assosicated with the EBS snapshot
-# TYPE ebs_snapshots_volume_size gauge
-ebs_snapshots_volume_size{job="public",progress="100%",region="ap-south-1",snapshot_id="redacted",state="completed",vol_id="redacted",service="redacted"} 50
+
 ```
 
 ## Advanced Section
@@ -117,35 +104,31 @@ ebs_snapshots_volume_size{job="public",progress="100%",region="ap-south-1",snaps
   - **log_level**: "production" for all `INFO` level logs. If you want to enable verbose logging use "debug".
   - **jobs**
     - **name**: Unique identifier for the job.
-    - **exported_tags**: List of EC2 Tags which are available as labels in the metrics exported. If you have any custom EC2 Tags that you want to scrape with other labels, you can add it here.
-    - **filters**:
-      - **name**: Name of the AWS Filter key.
-      - **value**: Value of the Filter key. Read more about [Filter API documentation](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Filter.html).
     - **aws_creds**:
       - **region**: AWS Region where your snapshots are hosted.
       - **access_key**: AWS Access Key if you are using an IAM User. It overrides the env variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
       - **secret_key**: AWS Secret Key. (See above)
       - **role_arn**: Role ARN if you want to `assume` another role from your IAM Role. This is particularly helpful to scrape data across multiple AWS Accounts.
 
-**NOTE**: You can use `--config` flag to supply a custom config file path while running `ebs-snapshot-exporter`.
+**NOTE**: You can use `--config` flag to supply a custom config file path while running `aws-dc-exporter`.
 
 ### Setting up Prometheus
 
 You can add the following config under `scrape_configs` in Prometheus' configuration.
 
 ```yaml
-  - job_name: 'ebs-snapshots'
+  - job_name: 'aws-dc'
     metrics_path: '/metrics'
     static_configs:
-    - targets: ['localhost:9608']
+    - targets: ['localhost:9980']
       labels:
-        service: ebs-snapshots
+        service: direct-connect
 ```
 
-Validate your setup by querying `ebs_snapshots_up` to check if ebs-snapshot-exporter is discovered by Prometheus:
+Validate your setup by querying `aws_dc_up` to check if aws-dc-exporter is discovered by Prometheus:
 
 ```plain
-`ebs_snapshots_up{instance="localhost:9608",job="ebs-snapshots",service="ebs-snapshots"} 1`
+`aws_dc_up{job="ebs-snapshots"} 1`
 ```
 
 ### Example Queries
@@ -157,8 +140,8 @@ Validate your setup by querying `ebs_snapshots_up` to check if ebs-snapshot-expo
 
 ### Example Alerts
 
-<details><summary>Alert when no snapshot is taken in last 3 hours</summary><br><pre>
-- alert: EBSSnapshotFailed
+<details><summary>Alert when BGP Peer state is not available</summary><br><pre>
+- alert: BGPPeerDown
   expr: ebs:last_failed_snapshot_age_in_hours >= 3
   for: 1m
   labels:

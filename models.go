@@ -3,17 +3,16 @@ package main
 import (
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
-
 	"github.com/aws/aws-sdk-go/service/directconnect/directconnectiface"
 	"github.com/sirupsen/logrus"
 )
 
 // Hub represents the structure for all app wide functions and structs
 type Hub struct {
-	logger  *logrus.Logger
-	config  config
-	version string
+	logger    *logrus.Logger
+	config    config
+	version   string
+	exporters []Exporter
 }
 
 // cfgApp represents the structure to hold App specific configuration.
@@ -54,10 +53,8 @@ type Job struct {
 
 // Exporter represents the structure to hold Prometheus Descriptors. It implements prometheus.Collector
 type Exporter struct {
-	hub    *Hub           // To access logger and other app wide config.
-	client FetchAWSData   // Implements FetchAWSData interface which is a set of methods to interact with AWS.
-	job    *Job           // Holds the Job metadata.
-	up     *metrics.Gauge // Represents if a scrape was successful or not.
+	client FetchAWSData // Implements FetchAWSData interface which is a set of methods to interact with AWS.
+	job    *Job         // Holds the Job metadata.
 }
 
 // DCClient represents the structure to hold DC Client object required to create AWS session and

@@ -58,25 +58,29 @@ func main() {
 		// you instantiate with, since we pass `job` as a pointer to the struct.
 		j := job
 		// Initialize the exporter. Exporter is a collection of metrics to be exported.
-		_, err := hub.NewExporter(&j)
+		ex, err := hub.NewExporter(&j)
 		if err != nil {
 			hub.logger.Errorf("exporter initialization failed for %s", job.Name)
 		}
+		hub.exporters = append(hub.exporters, *ex)
 	}
 	// Default index handler.
 	handleIndex := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Welcome to aws-dc-exporter. Visit /metrics."))
 	})
-	// Metrics handler
+	// Metrics handler.
 	handleMetrics := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		metrics.WritePrometheus(w, true)
+		for _, ex := range hub.exporters {
+			hub.Collect(ex)
+		}
+		metrics.WritePrometheus(w, false)
 	})
 	// Initialize router and define all endpoints.
 	router := http.NewServeMux()
 	router.Handle("/", handleIndex)
 	// Expose the registered metrics at `/metrics` path.
-	router.Handle("/", handleMetrics)
+	router.Handle("/metrics", handleMetrics)
 
 	// Initialize server.
 	server := &http.Server{
