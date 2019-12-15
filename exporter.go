@@ -62,7 +62,7 @@ func (hub *Hub) Collect(e Exporter) {
 }
 
 func sendUpMetric(job string, val float64) {
-	upDesc := fmt.Sprintf(`%s_up{job="%s"`, namespace, job)
+	upDesc := fmt.Sprintf(`%s_up{job="%s"}`, namespace, job)
 	metrics.GetOrCreateGauge(upDesc, func() float64 {
 		return val
 	})
