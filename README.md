@@ -27,7 +27,7 @@ Export [AWS Direct Connect](https://aws.amazon.com/directconnect/) metrics in Pr
 ### How it Works
 
 `aws-dc-exporter` uses [AWS SDK](https://github.com/aws/aws-sdk-go) to authenticate with AWS API
-and fetch Snapshots metdata. You can specify multiple `jobs` to fetch EBS Snapshots data and this exporter will collect all metrics and export in the form of Prometheus metrics using a lightweight [metrics](https://github.com/VictoriaMetrics/metrics) collection library.
+and fetch Snapshots metdata. You can specify multiple `jobs` to fetch Direct Connect data and this exporter will collect all metrics and export in the form of Prometheus metrics using a lightweight [metrics](https://github.com/VictoriaMetrics/metrics) collection library.
 
 You will need an _IAM User/Role_ with the following policy attached to the server from where you are running this program:
 
@@ -87,7 +87,9 @@ cp config.toml.sample config.toml # change the settings like server address, job
 You can send a `GET` request to `/metrics` and see the following metrics in Prometheus format:
 
 ```bash
-
+aws_dc_bgp_peers{job="myjob",bgp_peer_id="dxpeer-redacted",bgp_status="up",bgp_peer_state="available",aws_device_v2="xyz-redacted"} 0
+aws_dc_connections{job="myjob",conn_state="available",conn_name="redacted",partner_name="xyz",conn_id="dxcon-redacted",bandwidth="100Mbps"} 0
+aws_dc_virtual_interfaces{job="myjob",virt_interface_state="available",virt_interface_name="aws-redacted-2",customer_address="x.x.y.z/31",virt_interface_id="dxvif-redacted",location="xyz"} 0
 ```
 
 ## Advanced Section
@@ -95,7 +97,7 @@ You can send a `GET` request to `/metrics` and see the following metrics in Prom
 ### Configuration Options
 
 - **[server]**
-  - **address**: Port which the server listens to. Default is *9608*
+  - **address**: Port which the server listens to. Default is *9980*
   - **name**: _Optional_, human identifier for the server.
   - **read_timeout**: Duration (in milliseconds) for the request body to be fully read) Read this [blog](https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/) for more info.
   - **write_timeout**: Duration (in milliseconds) for the response body to be written.
@@ -128,31 +130,23 @@ You can add the following config under `scrape_configs` in Prometheus' configura
 Validate your setup by querying `aws_dc_up` to check if aws-dc-exporter is discovered by Prometheus:
 
 ```plain
-`aws_dc_up{job="ebs-snapshots"} 1`
+`aws_dc_up{job="myjob"} 1`
 ```
 
-### Example Queries
+## Example Alerts
 
-- Count of EBS Snapshots: `count(ebs_snapshots_start_time{mytag="somethingcool"})`
-- Last EBS Snapshot age in hours: `(min(time()-ebs_snapshots_start_time{exported_job="myjob"}) by (service) / 3600)`
-- Last unsuccesful snapshot age in hours: `(min(time()-ebs_snapshots_start_time{state!="completed"}) by (service) / 3600)`
-- Volume size of EBS for which snapshot is taken: `ebs_snapshots_volume_size{mytag="somethingcool"}`
-
-### Example Alerts
-
-<details><summary>Alert when BGP Peer state is not available</summary><br><pre>
-- alert: BGPPeerDown
-  expr: ebs:last_failed_snapshot_age_in_hours >= 3
+<details><summary>Alert when Connection State is not available</summary><br><pre>
+- alert: AWSDCConnectionDown
+  expr: count(sum(aws_dc_connections{conn_state!="available"}) by (conn_name)) > 0
   for: 1m
   labels:
     room: production-alerts
     severity: warning
   annotations:
-    description: EBS Snapshots seems to be not working for service {{ $labels.service }}.
-    title: EBS Snapshot failed.
-    summary: Please check the AWS DLM lifecycle policy and rules.
+    description: AWS Direct Connect Connection {{ $labels.conn_name }} seems to be down.
+    title: AWS DC Connection down.
+    summary: Please check the AWS DC Console and raise a ticket.
 </pre></details>
-
 
 ## Contribution
 

@@ -8,7 +8,7 @@ func replaceWithUnderscores(text string) string {
 }
 
 func stateToFloat(state string) float64 {
-	if state == "active" {
+	if state == "available" {
 		return 1
 	}
 	return 0

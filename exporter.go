@@ -29,6 +29,7 @@ func (hub *Hub) Collect(e Exporter) {
 	conn, err := e.client.GetConnections()
 	if err != nil {
 		hub.logger.Errorf("Error while getting connection states from AWS API: %s", err)
+		sendUpMetric(e.job.Name, 0)
 		return
 	}
 	for _, c := range conn.Connections {
@@ -40,6 +41,7 @@ func (hub *Hub) Collect(e Exporter) {
 	interfaces, err := e.client.GetVirtualInterfaces()
 	if err != nil {
 		hub.logger.Errorf("Error while getting interface states from AWS API: %s", err)
+		sendUpMetric(e.job.Name, 0)
 		return
 	}
 	for _, i := range interfaces.VirtualInterfaces {
@@ -56,4 +58,12 @@ func (hub *Hub) Collect(e Exporter) {
 			})
 		}
 	}
+	sendUpMetric(e.job.Name, 1)
+}
+
+func sendUpMetric(job string, val float64) {
+	upDesc := fmt.Sprintf(`%s_up{job="%s"`, namespace, job)
+	metrics.GetOrCreateGauge(upDesc, func() float64 {
+		return val
+	})
 }

@@ -44,11 +44,10 @@ type AWSCreds struct {
 	SecretKey string `koanf:"secret_key"`
 }
 
-// Job represents a list of arbitary key value pair used to filter EBS Snapshots.
+// Job represents a job name with AWS configs ideally meant to scrape from multiple AWS accounts/roles.
 type Job struct {
-	Name         string   `koanf:"name"`
-	AWSCreds     AWSCreds `koanf:"aws_creds"`
-	ExportedTags []string `koanf:"exported_tags"`
+	Name     string   `koanf:"name"`
+	AWSCreds AWSCreds `koanf:"aws_creds"`
 }
 
 // Exporter represents the structure to hold Prometheus Descriptors. It implements prometheus.Collector
