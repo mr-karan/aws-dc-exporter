@@ -12,7 +12,7 @@ build:
 	go build -o ${BIN} -ldflags="-X 'main.buildVersion=${VERSION}' -X 'main.buildDate=${BUILD_DATE}'"
 
 run:
-	./zed
+	./${BIN}
 
 fresh: clean build run
 

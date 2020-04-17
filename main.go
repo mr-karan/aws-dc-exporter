@@ -71,10 +71,11 @@ func main() {
 	})
 	// Metrics handler.
 	handleMetrics := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var m = metrics.NewSet()
 		for _, ex := range hub.exporters {
-			hub.Collect(ex)
+			hub.Collect(m, ex)
 		}
-		metrics.WritePrometheus(w, false)
+		m.WritePrometheus(w)
 	})
 	// Initialize router and define all endpoints.
 	router := http.NewServeMux()

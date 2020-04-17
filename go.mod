@@ -5,13 +5,9 @@ go 1.12
 require (
 	github.com/VictoriaMetrics/metrics v1.9.3
 	github.com/aws/aws-sdk-go v1.20.14
-	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/knadh/koanf v0.4.3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/prometheus/client_golang v1.0.0
-	github.com/prometheus/common v0.6.0 // indirect
-	github.com/prometheus/procfs v0.0.3 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.3
 	golang.org/x/net v0.0.0-20190628185345-da137c7871d7 // indirect
