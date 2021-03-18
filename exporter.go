@@ -36,7 +36,7 @@ func (hub *Hub) Collect(m *metrics.Set, e Exporter) {
 		return
 	}
 	for _, c := range conn.Connections {
-		connectionMetricDesc := fmt.Sprintf(`%s_connections{job="%s",conn_state="%s",conn_name="%s",partner_name="%s",conn_id="%s",bandwidth="%s"}`, namespace, e.job.Name, *c.ConnectionState, *c.ConnectionName, *c.PartnerName, *c.ConnectionId, *c.Bandwidth)
+		connectionMetricDesc := fmt.Sprintf(`%s_connections{job="%s",conn_state="%s",conn_name="%s",conn_id="%s",bandwidth="%s"}`, namespace, e.job.Name, *c.ConnectionState, *c.ConnectionName, *c.ConnectionId, *c.Bandwidth)
 		connState := *c.ConnectionState
 		m.GetOrCreateGauge(connectionMetricDesc, func() float64 {
 			return stateToFloat(connState)
