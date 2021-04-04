@@ -59,7 +59,7 @@ func (hub *Hub) Collect(m *metrics.Set, e Exporter) {
 
 		// fetch list of bgpPeers and create metrics
 		for _, bgp := range i.BgpPeers {
-			bgpMetricDesc := fmt.Sprintf(`%s_bgp_peers{job="%s",bgp_peer_id="%s",bgp_status="%s",bgp_peer_state="%s",aws_device_v2="%s"}`, namespace, e.job.Name, *bgp.BgpPeerId, *bgp.BgpStatus, *bgp.BgpPeerState, *bgp.AwsDeviceV2)
+			bgpMetricDesc := fmt.Sprintf(`%s_bgp_peers{job="%s",virt_interface_id="%s",bgp_peer_id="%s",bgp_status="%s",bgp_peer_state="%s",aws_device_v2="%s"}`, namespace, e.job.Name, *i.VirtualInterfaceId, *bgp.BgpPeerId, *bgp.BgpStatus, *bgp.BgpPeerState, *bgp.AwsDeviceV2)
 			bgpState := *bgp.BgpPeerState
 			m.GetOrCreateGauge(bgpMetricDesc, func() float64 {
 				return stateToFloat(bgpState)
