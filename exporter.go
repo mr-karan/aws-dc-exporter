@@ -51,7 +51,7 @@ func (hub *Hub) Collect(m *metrics.Set, e Exporter) {
 		return
 	}
 	for _, i := range interfaces.VirtualInterfaces {
-		interfacesMetricDesc := fmt.Sprintf(`%s_virtual_interfaces{job="%s",virt_interface_state="%s",virt_interface_name="%s",customer_address="%s",virt_interface_id="%s",location="%s"}`, namespace, e.job.Name, *i.VirtualInterfaceState, *i.VirtualInterfaceName, *i.CustomerAddress, *i.VirtualInterfaceId, *i.Location)
+		interfacesMetricDesc := fmt.Sprintf(`%s_virtual_interfaces{job="%s",connection_id="%s",virt_interface_state="%s",virt_interface_name="%s",customer_address="%s",virt_interface_id="%s",location="%s"}`, namespace, e.job.Name, *i.ConnectionId, *i.VirtualInterfaceState, *i.VirtualInterfaceName, *i.CustomerAddress, *i.VirtualInterfaceId, *i.Location)
 		intState := *i.VirtualInterfaceState
 		m.GetOrCreateGauge(interfacesMetricDesc, func() float64 {
 			return stateToFloat(intState)
