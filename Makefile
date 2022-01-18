@@ -1,6 +1,6 @@
 .PHONY : build run fresh test clean
 
-BIN := awsdc-exporter
+BIN := aws-dc-exporter
 
 HASH := $(shell git rev-parse --short HEAD)
 COMMIT_DATE := $(shell git show -s --format=%ci ${HASH})
